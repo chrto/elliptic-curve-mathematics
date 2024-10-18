@@ -1,6 +1,7 @@
 module EllipticCurve where
 
 import qualified Data.Maybe as Maybe
+import qualified Data.Set as Set
 
 -- Elliptic curve parameters
 modulus :: Integer
@@ -150,19 +151,31 @@ negPoint (Point x y) = Point x ((-y) `mod` modulus)
 -- True
 
 -- Function to find points on the curve
-findPointsInZp :: [(Integer, Integer)]
-findPointsInZp = [(x, y)
-                 | x <- [0 .. modulus - 1]
-                 , y <- [0 .. modulus - 1]
-                 , (y ^ 2 `mod` modulus) == curveRHS x]
+findPointsInZp :: Set.Set Point
+findPointsInZp = Set.fromList [
+                  Point x y
+                  | x <- [0 .. modulus - 1]
+                  , y <- [0 .. modulus - 1]
+                  , (y ^ 2 `mod` modulus) == curveRHS x
+                ]
                     where
                       curveRHS :: Integer -> Integer
                       curveRHS x = (x ^ 3 + a*x + b) `mod` modulus
 
+findPointsInZn :: Point -> Set.Set Point
+findPointsInZn g = aux 0 g Set.empty
+                   where
+                    setSize :: Set.Set Point -> Integer
+                    setSize = toInteger . Set.size
+                    aux :: Integer -> Point -> Set.Set Point -> Set.Set Point
+                    aux n g acc
+                      | n  > setSize acc  = acc
+                      | otherwise         = let g' = scalarMult n g
+                                            in  aux (n + 1) g (Set.insert g' acc)
 
 -- final proof
 --- >>> findPointsInZp
--- [(0,17),(0,30),(1,14),(1,33),(3,9),(3,38),(4,20),(4,27),(7,16),(7,31),(8,7),(8,40),(13,18),(13,29),(14,5),(14,42),(16,22),(16,25),(17,19),(17,28),(19,2),(19,45),(20,8),(20,39),(21,3),(21,44),(23,1),(23,46),(25,13),(25,34),(29,12),(29,35),(31,0),(32,4),(32,43),(33,6),(33,41),(35,21),(35,26),(39,23),(39,24),(43,15),(43,32),(44,11),(44,36),(46,10),(46,37)]
+-- fromList [(0,17),(0,30),(1,14),(1,33),(3,9),(3,38),(4,20),(4,27),(7,16),(7,31),(8,7),(8,40),(13,18),(13,29),(14,5),(14,42),(16,22),(16,25),(17,19),(17,28),(19,2),(19,45),(20,8),(20,39),(21,3),(21,44),(23,1),(23,46),(25,13),(25,34),(29,12),(29,35),(31,0),(32,4),(32,43),(33,6),(33,41),(35,21),(35,26),(39,23),(39,24),(43,15),(43,32),(44,11),(44,36),(46,10),(46,37)]
 
 --- >>> Infinity == scalarMult 48 (Point 17 19)
 -- True
