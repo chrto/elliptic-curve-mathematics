@@ -13,7 +13,12 @@ b :: Integer
 b = 7         -- b = 7 for the curve y^2 = x^3 + 7 mod 47
 
 -- Point on the elliptic curve (Infinity is represented by Nothing)
-data Point = Point Integer Integer | Infinity deriving (Show, Eq)
+data Point = Point Integer Integer | Infinity deriving (Eq, Ord)
+
+instance Show Point where
+  show :: Point -> String
+  show Infinity = "(0,0)"
+  show (Point x y) = "(" ++ show x ++ "," ++ show y ++ ")"
 
 -- Elliptic Curve Mathematics
 -- 1) Modular inverse
@@ -166,10 +171,11 @@ findPointsInZp = [(x, y)
 -- True
 
 --- >>> scalarMult 100 (Point 17 19)
--- Point 33 6
+-- (33,6)
 
 --- >>> modularInverse 100 47
 -- Just 8
 
 --- >>> scalarMult 8 (Point 33 6)
--- Point 0 17
+-- (0,17)
+
