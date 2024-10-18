@@ -66,14 +66,14 @@ modularInverse a m
 pointAdd :: Point -> Point -> Point
 pointAdd Infinity p = p
 pointAdd p Infinity = p
-pointAdd (Point x1 y1) (Point x2 y2)
-  | x1 == x2 && y1 == (-y2) `mod` modulus = Infinity                    -- P + (-P) = O (Identity element)
-  | x1 == x2 && y1 == y2                  = pointDouble (Point x1 y1)   -- P + P (Doubling)
-  | otherwise = Maybe.fromMaybe Infinity $ Point <$> mx3 <*> my3
-                where
-                  mλ :: Maybe Integer = (\mi -> ((y1 - y2) * mi) `mod` modulus) <$> modularInverse (x1 - x2) modulus
-                  mx3 :: Maybe Integer = (\λ -> (λ * λ - x1 - x2) `mod` modulus) <$> mλ
-                  my3 :: Maybe Integer = (\λ x3 -> (λ * (x1 - x3) - y1) `mod` modulus) <$> mλ <*> mx3
+pointAdd p1@(Point x1 y1) p2@(Point x2 y2)
+  | p1 == negPoint p2 = Infinity                    -- P + (-P) = O (Identity element)
+  | p1 == p2          = pointDouble (Point x1 y1)   -- P + P (Doubling)
+  | otherwise         = Maybe.fromMaybe Infinity $ Point <$> mx3 <*> my3
+                        where
+                          mλ :: Maybe Integer = (\mi -> ((y1 - y2) * mi) `mod` modulus) <$> modularInverse (x1 - x2) modulus
+                          mx3 :: Maybe Integer = (\λ -> (λ * λ - x1 - x2) `mod` modulus) <$> mλ
+                          my3 :: Maybe Integer = (\λ x3 -> (λ * (x1 - x3) - y1) `mod` modulus) <$> mλ <*> mx3
 
 -- [17, 19] + [46, 37] should be [32, 43]
 --- >>> (Point 32 43) == pointAdd (Point 17 19) (Point 46 37)
@@ -87,6 +87,8 @@ pointAdd (Point x1 y1) (Point x2 y2)
 --- >>> Infinity == pointAdd (Point 17 19) (Point 17 (-19))
 -- True
 
+--- >>> Infinity == pointAdd (Point 17 19) (Point 17 28)
+-- True
 
 -- 3) Point doubling on the elliptic curve
 pointDouble :: Point -> Point
