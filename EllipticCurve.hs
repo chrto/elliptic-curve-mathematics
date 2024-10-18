@@ -14,7 +14,30 @@ b :: Integer
 b = 7         -- b = 7 for the curve y^2 = x^3 + 7 mod 47
 
 -- Point on the elliptic curve (Infinity is represented by Nothing)
-data Point = Point Integer Integer | Infinity deriving (Eq, Ord)
+data Point = Point Integer Integer | Infinity deriving (Ord)
+
+instance Eq Point where
+  (==) :: Point -> Point -> Bool
+  (==) Infinity Infinity = True
+  (==) (Point x1 y1) (Point x2 y2)
+    | y1 < 0             = x1 == x2 && y1 `mod` modulus == y2
+    | y2 < 0             = x1 == x2 && y1 == y2 `mod` modulus
+    | otherwise          = x1 == x2 && y1 == y2
+  (==) _ _ = False
+
+--- >>> (Point 17 19) == (Point 17 19)
+-- True
+--- >>> (Point 17 19) /= (Point 4 20)
+-- True
+
+--- >>> (Point 17 19) == (Point 17 (-28))
+-- False
+
+--- >>> (Point 17 (-28)) == (Point 17 19)
+-- False
+
+--- >>> negPoint (Point 17 (-28)) == (Point 17 28)
+-- True
 
 instance Show Point where
   show :: Point -> String
