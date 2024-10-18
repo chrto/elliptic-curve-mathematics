@@ -35,7 +35,7 @@ modularInverse a m
   | a < 0     = let a' = a `mod` m                    -- a' is positive equivalent of a under modulo m
                 in modularInverse (a' `mod` m) m      -- compute the modular inverse of a' as a positive number
   | otherwise = if g == 1
-                then Just (i `mod` m)
+                then pure (i `mod` m)
                 else Nothing
                 where
                   (i, _, g) = eea a m
@@ -45,18 +45,18 @@ modularInverse a m
                             in (t - q * s, s, g)
 
 -- modular inverse of 3 should be 16
---- >>> Just 16 == modularInverse 3 47
+--- >>> pure 16 == modularInverse 3 47
 -- True
 
 -- modular inverse of 13 should be 29
---- >>> Just 29 == modularInverse 13 47
+--- >>> pure 29 == modularInverse 13 47
 -- True
 
 -- modular inverse of 100 should be 8
---- >>> Just 8 == modularInverse 100 47
+--- >>> pure 8 == modularInverse 100 47
 -- True
 
---- >>> Just 37 == modularInverse (-33) 47
+--- >>> pure 37 == modularInverse (-33) 47
 -- True
 
 --- >>> Nothing == modularInverse 0 47
@@ -69,7 +69,7 @@ pointAdd p Infinity = p
 pointAdd (Point x1 y1) (Point x2 y2)
   | x1 == x2 && y1 == (-y2) `mod` modulus = Infinity                    -- P + (-P) = O (Identity element)
   | x1 == x2 && y1 == y2                  = pointDouble (Point x1 y1)   -- P + P (Doubling)
-  | otherwise = Maybe.fromMaybe Infinity $ pure Point <*> mx3 <*> my3
+  | otherwise = Maybe.fromMaybe Infinity $ Point <$> mx3 <*> my3
                 where
                   mλ :: Maybe Integer = (\mi -> ((y1 - y2) * mi) `mod` modulus) <$> modularInverse (x1 - x2) modulus
                   mx3 :: Maybe Integer = (\λ -> (λ * λ - x1 - x2) `mod` modulus) <$> mλ
